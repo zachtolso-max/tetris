@@ -149,6 +149,11 @@
   const POINTS = [0, 100, 300, 500, 800];
   const KICKS = [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[-1,-1],[1,-1]];
 
+  const blockImg = new Image();
+  let imgReady = false;
+  blockImg.onload = () => { imgReady = true; drawSide(); draw(); };
+  blockImg.src = 'block.jpg';
+
   let grid, current, nextType, holdType, canHold;
   let score, lines, level, dropMs, dropTimer, lastTime, running, paused, rafId;
 
@@ -288,11 +293,22 @@
   }
 
   function drawCell(c, x, y, size, color, alpha = 1) {
+    const px = x * size + 1, py = y * size + 1, s = size - 2;
     c.globalAlpha = alpha;
-    c.fillStyle = color;
-    c.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-    c.fillStyle = 'rgba(255,255,255,0.25)';
-    c.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+    if (imgReady) {
+      c.drawImage(blockImg, px, py, s, s);
+      c.globalAlpha = alpha * 0.30;
+      c.fillStyle = color;
+      c.fillRect(px, py, s, s);
+      c.globalAlpha = alpha;
+      c.strokeStyle = 'rgba(0,0,0,0.45)';
+      c.strokeRect(px + 0.5, py + 0.5, s - 1, s - 1);
+    } else {
+      c.fillStyle = color;
+      c.fillRect(px, py, s, s);
+      c.fillStyle = 'rgba(255,255,255,0.25)';
+      c.fillRect(px, py, s, 4);
+    }
     c.globalAlpha = 1;
   }
 
@@ -330,8 +346,19 @@
     for (let r = 0; r < shape.length; r++)
       for (let col = 0; col < shape[r].length; col++)
         if (shape[r][col]) {
-          c.fillStyle = COLORS[type];
-          c.fillRect(ox + col * s + 1, oy + r * s + 1, s - 2, s - 2);
+          const px = ox + col * s + 1, py = oy + r * s + 1, sz = s - 2;
+          if (imgReady) {
+            c.drawImage(blockImg, px, py, sz, sz);
+            c.globalAlpha = 0.30;
+            c.fillStyle = COLORS[type];
+            c.fillRect(px, py, sz, sz);
+            c.globalAlpha = 1;
+            c.strokeStyle = 'rgba(0,0,0,0.45)';
+            c.strokeRect(px + 0.5, py + 0.5, sz - 1, sz - 1);
+          } else {
+            c.fillStyle = COLORS[type];
+            c.fillRect(px, py, sz, sz);
+          }
         }
   }
   function drawSide() {
